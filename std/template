@@ -1,0 +1,29 @@
+<html>
+	<head>
+		<title>$document - X</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="Content-Type" content="text/html"; charset=UTF-8/>
+		<link rel="stylesheet" href="$webroot/style.css" type="text/css"/>
+	</head>
+	<body>
+	<div id='header'></div>
+	<div class='path_border'></div>
+	<div id='path'> 
+		$path
+	</div>
+	<div class='menu_border'></div>
+	<div id='nav'>
+		<ul>
+			<li>&nbsp;</li>
+			$nav
+		</ul>
+	</div>
+	<div id='content'>
+		$content
+	</div>
+	<div class='footer_border'></div>
+	<div id='footer'>
+	</div>
+	<div class='footer_border'></div>
+	</body>
+</html>

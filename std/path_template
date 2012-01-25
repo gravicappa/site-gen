@@ -1,0 +1,14 @@
+BEGIN {FS = "\t"}
+
+{
+	name[NR] = $1
+	url[NR] = $2
+}
+
+END {
+	for (i = NR; i > 0; --i) {
+		class = (i > 1) ? "path_item" : "path_item_cur"
+		printf("<span class='path_sep'>&gt;</span>\n")
+		printf("<a class='%s' href='%s'>%s</a>\n", class, url[i], name[i])
+	}
+}

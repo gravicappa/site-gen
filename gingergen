@@ -1,0 +1,95 @@
+#!/bin/dash
+
+toolsdir="$PWD"
+template='template'
+docroot='sample'
+md2html='sundown'
+webname='HOME'
+webroot='/'
+
+test -n "$1" && docroot="$1"
+test -f "$docroot/conf" && . "$docroot/conf"
+
+cleanname() {
+  echo "$1" | sed 's_/*/_/_g'
+}
+
+mk_path() {
+	#local p="$(dirname "$1")"
+	local p="$1"
+  local back="$(echo "$p" | sed 's_/[^/]\+_/.._g')"
+  {
+    while test -n "$p" -a "$p" != "." -a "$p" != "/" ; do
+      local item="$(basename "$p")"
+      printf "%s\t%s\n" "$item" "$p"
+      local p="$(dirname "$p")"
+    done
+    printf "%s\t%s\n" "$webname" "$webroot"
+  } | awk -v "this=$2" -f "$docroot/path_template"
+}
+
+mk_nav() {
+  local dir="$1"
+  test -f "$1" && local dir="$(dirname "$1")"
+  {
+    for f in "$dir"/*; do
+      if test -d "$f"; then
+        n="$(basename "$f")"
+        printf "%s/\t%s/index.html\n" "$n" "$n"
+      fi
+    done
+    for f in "$dir"/*; do
+      n="$(basename "$f")"
+      if test -f "$f" -a "$n" != "index.md" -a "$n" != "index.html" ; then
+        case "$f" in
+          *.html)
+            name="$(echo "$f" | sed 's/.html$//')"
+            if ! test -f "$name.md"; then
+              printf "%s\t%s\n" "$(basename "$name")" "$(basename "$f")"
+            fi
+            ;;
+          *.md) 
+            name="$(basename "$f" | sed 's/.md$//')"
+            printf "%s\t%s.html\n" "$name" "$name"
+            ;;
+        esac
+      fi
+    done
+  } | awk -v "this=$2" -f "$docroot/nav_template"
+}
+
+mk_page() {
+  local name="$(echo "$1" | sed 's/.md$/.html/')"
+  local document="$(echo "$2" | sed 's/.md$//;s_^/__')"
+  curpath="$(mk_path "$(dirname "$2")")" \
+  nav="$(mk_nav "$1" "$(basename "$document")")" \
+  content="$("$md2html" < "$1")" \
+    awk -v "document=$document" '
+      $1 == "$path" {print ENVIRON["curpath"]; next}
+      $1 == "$nav" {print ENVIRON["nav"]; next}
+      $1 == "$content" {print ENVIRON["content"]; next}
+      {
+        gsub(/\$document/, document)
+        gsub(/\$webroot/, ENVIRON["webroot"])
+        print
+      }' <"$docroot/template" >"$name"
+}
+
+walk_dir() {
+	for f in "$1"/*; do
+    f="$(cleanname "$f")"
+    webdir="$2/$(basename "$f")"
+		if test -d "$f" ; then
+      if ! test -f "$f/index.html" -o -f "$f/index.md" ; then
+        echo '' > "$f/index.md"
+      fi
+			walk_dir "$f" "$webdir"
+		elif test -f "$f"; then
+			case "$f" in
+				*.md) mk_page "$f" "$webdir";;
+			esac
+		fi
+	done
+}
+
+(cd "$docroot" && walk_dir .)
