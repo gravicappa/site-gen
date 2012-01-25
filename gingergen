@@ -1,7 +1,5 @@
-#!/bin/dash
+#!/bin/sh
 
-toolsdir="$PWD"
-template='template'
 docroot='sample'
 md2html='sundown'
 webname='HOME'
