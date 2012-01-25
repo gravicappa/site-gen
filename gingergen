@@ -13,7 +13,6 @@ cleanname() {
 }
 
 mk_path() {
-	#local p="$(dirname "$1")"
 	local p="$1"
   local back="$(echo "$p" | sed 's_/[^/]\+_/.._g')"
   {
@@ -23,7 +22,7 @@ mk_path() {
       local p="$(dirname "$p")"
     done
     printf "%s\t%s\n" "$webname" "$webroot"
-  } | awk -v "this=$2" -f "$docroot/path_template"
+  } | awk -v "this=$2" -f "path_template"
 }
 
 mk_nav() {
@@ -53,7 +52,7 @@ mk_nav() {
         esac
       fi
     done
-  } | awk -v "this=$2" -f "$docroot/nav_template"
+  } | awk -v "this=$2" -f "nav_template"
 }
 
 mk_page() {
@@ -70,7 +69,7 @@ mk_page() {
         gsub(/\$document/, document)
         gsub(/\$webroot/, ENVIRON["webroot"])
         print
-      }' <"$docroot/template" >"$name"
+      }' <"template" >"$name"
 }
 
 walk_dir() {
