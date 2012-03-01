@@ -1,0 +1,119 @@
+# Gingergen
+
+It is a relatively simple script for generating static sites from a tree of
+markdown files. It has features:
+
+  * appearance can be customized via templates
+  * configurable markdown engine
+  * can manage multilingual site
+
+## Usage
+
+    gingergen <docroot>
+
+## Docroot structure
+
+    <docroot>/
+      conf
+      index.md
+      common.png
+      _ru/
+        index.md
+        О нас.md
+      _en/
+        index.md
+        about.md
+      Subdir1/
+        _ru/
+          conf
+          index.md
+        _en/
+          conf
+          index.md
+
+## Languages
+
+Directory `dir/_<lang>` contains files for language *<lang>* for directory
+`dir`. That means that in your directory `subone`
+
+    subone/
+      img1.png
+      img2.png
+      _en/
+        index.md
+        Help.md
+      _ru/
+        index.md
+        Справка.md
+
+for language *en* will be processed these files: `img1.png`, `img2.png`,
+`_en/index.md`, `_en/Help.md`.
+
+## conf file contents
+
+File `conf` is an ordinary sh-file which is sourced by gingergen. When
+processing a directory first `<dir>/conf` is sourced then
+`<dir>/_<language>/conf`. 
+
+Sample conf:
+
+    webroot='/wiki/'
+    webname='Wiki'
+    name='Directory name'
+    show=(yes|true|1|no|false|0)
+
+- *webroot*: sets `webroot` variable. `webroot` is a URL prefix of wiki.
+- *webname*: is a name of root node in wiki.
+- *name*: sets displayed name of directory (useful for naming directories in
+  different languages).
+- *show*: sets whether directory is displayed on navigation menus
+
+Variables *webroot* and *webname* should be used only in `<docroot>/conf` and
+`<docroot>/_<language>/conf`.
+
+## Templates
+
+### `<docroot>/template` 
+
+`<docroot>/template` file is an ordinary html-document which contains
+placeholders for content items. Known placeholders are:
+
+- *$document*: document's full name (e.g. *ChapterA/SectionB/SubsectionC*),
+- *$webroot*: contents of *webroot* variable (see `conf` files description),
+- *$path*: navigational item to move from current position to homepage,
+- *$nav*: navigational menu to move to items in current section,
+- *$content*: document's content.
+
+Placeholders *$path*, *$nav*, *$content* must be the only items in line:
+
+**wrong:**
+
+    <div id='nav'>$nav</div>
+
+**right:**
+
+    <div id='nav'>
+      $nav
+    </div>
+
+### `<docroot>/nav_template`
+
+`<docroot>/nav_template` is an AWK script that is responsible to navigational
+menu generation (*$nav* placeholder). It is invoked with `this` variable set
+to current document relative name. Items are fed to its stdandard input per
+line formatted like this: `flag<tab>name<tab>url` where
+
+- *flag*: if it is `*` then item is a link, if it equals to `=` then item is a
+  text;
+- *name*: name of item;
+- *url*: url of item.
+
+### `<docroot>/path_template`
+
+`<docroot>/path_template` is an AWK script that draws path navigational menu
+(*$path* placeholder). It is invoked with `this` variable set to current
+document relative name. Items are fed to its standard input per line formatted
+like this: `name<tab>url` where
+
+- *name*: name of item,
+- *url*: url of item.
