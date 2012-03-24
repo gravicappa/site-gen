@@ -40,7 +40,7 @@ mk_path() {
   {
     while test -n "$p" -a "$p" != "." -a "$p" != "/" ; do
       local item="$(basename "$p")"
-      name="$item"
+      name="$(echo "$item" | sed 's/^[0-9]\+_//')"
       test -f "./$p/conf" && . "./$p/conf"
       test -f "./$p/$2/conf" && . "./$p/$2/conf"
       printf "%s\t%s\n" "$name" "$back"
@@ -97,7 +97,7 @@ mk_nav() {
     for f in "$dir/$3"/* "$dir"/[!_]* ; do
       if test -d "$f"; then
         n="$(basename "$f")"
-        name="$n"
+        name="$(echo "$n" | sed 's/^[0-9]\+_//')"
         show=true
         test -f "$f/conf" && . "$f/conf"
         test -f "$f/$3/conf" && . "$f/$3/conf"

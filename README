@@ -11,7 +11,7 @@ markdown files. It has features:
 
 If you just want to process your site type
 
-		./gingergen <docroot>
+    ./gingergen <docroot>
 
 If your site is multilingual and you want your apache to make use of
 HTTP request flag Accept-Language you can use convenience scripts
@@ -41,16 +41,16 @@ and to speed up site loading.
 
   In apache site configuration file /etc/apache2/sites-enabled/mysite:
 
-		...
-		Alias /webroot "/real/directory"
-		<Directory "/real/directory">
-			DirectoryIndex index.html
-			Options FollowSymLinks MultiViews
-			AllowOverride All
-			Order allow, deny
-			allow from all
-		</Directory>
-		...
+    ...
+    Alias /webroot "/real/directory"
+    <Directory "/real/directory">
+      DirectoryIndex index.html
+      Options FollowSymLinks MultiViews
+      AllowOverride All
+      Order allow, deny
+      allow from all
+    </Directory>
+    ...
 
   Note, that `/webroot/` is value for webroot parameter in conf file.
 
@@ -70,8 +70,8 @@ and to speed up site loading.
         _ru/
           conf
           index.md
-					one.md
-					one.name
+          one.md
+          one.name
         _en/
           conf
           index.md
@@ -93,6 +93,24 @@ Directory `dir/_<lang>` contains files for language *<lang>* for directory
 
 for language *en* will be processed these files: `img1.png`, `img2.png`,
 `_en/index.md`, `_en/Help.md`.
+
+## File order
+
+Files and directories appear in nav menu sorted lexicographically. Directories
+always go first. If you want to change order of items you can add numbers to
+your files names:
+
+    dir/
+      1_c.md
+      2_b.md
+      3_a.md
+      subdir1/
+      1_subdir2/
+
+In nav menu such files will be seen without numbers, so for `dir` above menu
+will look like:
+
+    [subdir2/ subdir1/ c b a]
 
 ## conf file contents
 
