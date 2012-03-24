@@ -1,0 +1,82 @@
+#!/bin/sh
+
+docroot='.'
+test -n "$1" && docroot="$1"
+test -f "$docroot/conf" && . "$docroot/conf"
+
+template_dir="$(dirname "$(readlink -f "$0")")"/templates
+
+cp -r -n "$template_dir"/* "$docroot"
+
+mk_lang_entry()
+{
+  cat <<END
+RewriteCond %{HTTP:Accept-Language} ^${1##*[~_]}
+RewriteCond %{REQUEST_URI} ^${webroot}index.html\$ [OR]
+RewriteCond %{REQUEST_URI} ^${webroot}\$ [OR]
+RewriteCond %{REQUEST_URI} ^${webroot%%\/}\$
+RewriteRule ^ ${webroot}$1/index.html [R,L]
+
+END
+}
+
+for i in "$docroot"/_*; do
+  langs="$langs $(basename "$i")"
+done
+
+cat > "$docroot"/.htaccess <<END
+AddEncoding gzip .gz
+
+RewriteEngine On
+
+RewriteBase ${webroot%%\/}
+
+END
+
+for i in $langs ; do
+  mk_lang_entry "$i" >> "$docroot"/.htaccess;
+done;
+
+cat >> "$docroot"/.htaccess <<END
+RewriteCond %{HTTP:Accept-Encoding} gzip
+RewriteCond %{HTTP_USER_AGENT} !Safari
+RewriteCond %{REQUEST_FILENAME} \.css\$ [OR]
+RewriteCond %{REQUEST_FILENAME} \.js\$ [OR]
+RewriteCond %{REQUEST_FILENAME} \.html\$
+RewriteCond %{REQUEST_FILENAME}.gz -f
+RewriteRule ^(.*)\.(css|js|html)?\$ \$1.\$2.gz [QSA,L]
+
+<IfModule mod_headers.c>
+    Header append Vary User-Agent
+    <FilesMatch .*\.js\.gz\$>
+        ForceType text/javascript
+        Header set Content-Encoding gzip
+        Header append Cache-control private
+    </FilesMatch>
+    <FilesMatch .*\.css\.gz\$>
+        ForceType text/css
+        Header set Content-Encoding gzip
+        Header append Cache-control private
+    </FilesMatch>
+    <FilesMatch .*\.html\.gz\$>
+        ForceType text/html
+        Header set Content-Encoding gzip
+        Header append Cache-control private
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png "access plus 2 hours"
+    ExpiresByType image/jpeg "access plus 2 hours"
+    ExpiresByType image/gif "access plus 2 hours"
+    ExpiresByType image/tiff "access plus 2 hours"
+    ExpiresByType image/svg+xml "access plus 2 hours"
+    ExpiresByType text/css "access plus 2 hours"
+    ExpiresByType text/html "access plus 2 hours"
+    ExpiresByType text/javascript "access plus 2 hours"
+</IfModule>
+
+FileETag MTime Size
+
+END

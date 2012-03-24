@@ -1,8 +1,0 @@
-BEGIN {FS = "\t"}
-{
-  if ($1 == this)
-    printf("<li class='cur_page'><a class='nav_item' href='%s'>%s</a></li>\n",
-           $2, $1)
-  else
-    printf("<li><a class='nav_item' href='%s'>%s</a></li>\n", $2, $1)
-}

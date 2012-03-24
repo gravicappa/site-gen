@@ -1,0 +1,14 @@
+#!/bin/sh
+
+docroot='.'
+test -n "$1" && docroot="$1"
+test -f "$docroot/conf" && . "$docroot/conf"
+
+find "$docroot" -name '*.css' -o -name '*.html' -o -name '*.js' \
+| {
+   while IFS= read -r line; do
+     if [ "$line" -nt "$line.gz" -o ! -f "$line.gz" ] ; then
+       gzip -9 -c "$line" > "$line.gz";
+     fi
+   done
+ }
