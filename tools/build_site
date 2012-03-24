@@ -3,5 +3,5 @@
 scripts_dir="$(dirname "$(readlink -f "$0")")"
 
 "$scripts_dir"/configure "$1"
-"$scripts_dir"/gingergen "$1"
+"$scripts_dir"/../gingergen "$1"
 "$scripts_dir"/postprocess "$1"
