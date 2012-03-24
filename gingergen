@@ -1,92 +1,193 @@
-#!/bin/sh
+#!/bin/dash
 
-docroot='sample'
 md2html='sundown'
 webname='HOME'
-webroot='/'
-
-test -n "$1" && docroot="$1"
-test -f "$docroot/conf" && . "$docroot/conf"
+webroot='/prinar/'
+template="template"
+nav_template="nav_template"
+path_template="path_template"
 
 cleanname() {
   echo "$1" | sed 's_/*/_/_g'
 }
 
+mk_title() {
+  local p="$1"
+  test _ != "$2" && local p="$(dirname "$p")"
+  local t=''
+  local sep=''
+  while test -n "$p" -a "$p" != "." -a "$p" != "/" ; do
+    local name="$(basename "$p")"
+    test -f "./$p/conf" && . "./$p/conf"
+    test -f "./$p/$2/conf" && . "./$p/$2/conf"
+    local t="$name$sep$t"
+    local sep='/'
+    local p="$(dirname "$p")"
+  done
+  test -z "$t" && local t="$webname"
+  echo "$t"
+}
+
 mk_path() {
-	local p="$1"
-  local back="$(echo "$p" | sed 's_/[^/]\+_/.._g')"
+  local p="$1"
+  local back="index.html"
+  local path_tpl="$path_template"
+  if test _ != "$2" ; then
+    local p="$(dirname "$p")"
+    local back="../$2/index.html"
+    test -f "$path_tpl$2" && local path_tpl="$path_tpl$2"
+  fi
   {
     while test -n "$p" -a "$p" != "." -a "$p" != "/" ; do
       local item="$(basename "$p")"
-      printf "%s\t%s\n" "$item" "$p"
+      name="$item"
+      test -f "./$p/conf" && . "./$p/conf"
+      test -f "./$p/$2/conf" && . "./$p/$2/conf"
+      printf "%s\t%s\n" "$name" "$back"
       local p="$(dirname "$p")"
+      local back="../$back"
     done
-    printf "%s\t%s\n" "$webname" "$webroot"
-  } | awk -v "this=$2" -f "path_template"
+    test -f "./conf" && . "./conf"
+    test -f "./$2/conf" && . "./$2/conf"
+    printf "%s\t%s\n" "$webname" "$back"
+  } | awk -v "this=$2" -f "$path_tpl"
+}
+
+mk_nav_file_link() {
+  local n="$(basename "$1")"
+  local p="$2"
+  if test -f "$1" -a "$n" != index.md -a "$n" != index.html; then
+    case "$f" in
+      *.html)
+        name="$(echo "$f" | sed 's/.html$//;s/^[0-9]\+_//')"
+        n="$(basename "$name")"
+        test -f "$name.name" && IFS= read -r n < "$name.name"
+        test -f "$name.md" || printf "*\t%s\t%s\n" "$n" "$p$(basename "$f")"
+        ;;
+      *.md)
+        name="$(echo "$f" | sed 's/.md$//;s/^[0-9]\+_//')"
+        n="$(basename "$name")"
+        test -f "$name.name" && IFS= read -r n < "$name.name"
+        printf "*\t%s\t%s.html\n" "$n" "$p$(basename "$name")"
+        ;;
+    esac
+  fi
 }
 
 mk_nav() {
   local dir="$1"
+  local p=''
   test -f "$1" && local dir="$(dirname "$1")"
+  local nav_tpl="$nav_template"
+  if test _ != "$3" ; then
+    local dir="$(dirname "$dir")"
+    local p='../'
+    test -f "$nav_tpl$3" && local nav_tpl="$nav_tpl$3"
+  fi
   {
-    for f in "$dir"/*; do
+    if test "$dir" != '.' ; then
+      if test _ = "$3" ; then
+        printf "*\t..\t../%sindex.html\n" "$p"
+      else
+        printf "*\t..\t../%sindex.html\n" "$p$3/"
+      fi
+    else
+      printf "_\n"
+    fi
+    for f in "$dir/$3"/* "$dir"/[!_]* ; do
       if test -d "$f"; then
         n="$(basename "$f")"
-        printf "%s/\t%s/index.html\n" "$n" "$n"
-      fi
-    done
-    for f in "$dir"/*; do
-      n="$(basename "$f")"
-      if test -f "$f" -a "$n" != "index.md" -a "$n" != "index.html" ; then
-        case "$f" in
-          *.html)
-            name="$(echo "$f" | sed 's/.html$//')"
-            if ! test -f "$name.md"; then
-              printf "%s\t%s\n" "$(basename "$name")" "$(basename "$f")"
+        name="$n"
+        show=true
+        test -f "$f/conf" && . "$f/conf"
+        test -f "$f/$3/conf" && . "$f/$3/conf"
+        case "$show" in
+          false|no|0) ;;
+          *)
+            if test -f "$f/$3/index.md" -o -f "$f/$3/index.html" ; then
+              printf "*\t%s/\t%s/%s/index.html\n" "$name" "$p$n" "$3"
+            else
+              printf "*\t%s/\t%s/index.html\n" "$name" "$p$n"
             fi
-            ;;
-          *.md) 
-            name="$(basename "$f" | sed 's/.md$//')"
-            printf "%s\t%s.html\n" "$name" "$name"
             ;;
         esac
       fi
     done
-  } | awk -v "this=$2" -f "nav_template"
+    local fdir="$dir"
+    test _ != "$3" && local fdir="$dir/$3"
+    for f in "$fdir"/* ;do
+      mk_nav_file_link "$f" ""
+    done
+  } | awk -v "this=$2" -f "$nav_tpl"
 }
 
 mk_page() {
-  local name="$(echo "$1" | sed 's/.md$/.html/')"
-  local document="$(echo "$2" | sed 's/.md$//;s_^/__')"
-  curpath="$(mk_path "$(dirname "$2")")" \
-  nav="$(mk_nav "$1" "$(basename "$document")")" \
-  content="$("$md2html" < "$1")" \
-    awk -v "document=$document" '
-      $1 == "$path" {print ENVIRON["curpath"]; next}
-      $1 == "$nav" {print ENVIRON["nav"]; next}
-      $1 == "$content" {print ENVIRON["content"]; next}
-      {
-        gsub(/\$document/, document)
-        gsub(/\$webroot/, ENVIRON["webroot"])
-        print
-      }' <"template" >"$name"
+  lang="$(dirname "$1" | awk -F/ '$NF ~ /^_/ {print $NF;exit} {print "_"}')"
+
+  test -f "conf" && . "./conf"
+  test -f "$lang/conf" && . "$lang/conf"
+
+  local name="$(echo "$1" | sed 's/.[^.]*$/.html/')"
+  local document="$(echo "$2" | sed 's/.[^.]*$//;s_^/__')"
+  tpl="$template"
+  test -f "$template$lang" && local tpl="$template$lang"
+  local n="$(basename "$document")"
+  local altname="$(echo "$1" | sed 's/.[^.]*$/.name/')"
+  test -f "$altname" && IFS= read -r n < "$altname"
+
+  if true || test "$name" -ot "$1" ; then
+    curpath="$(mk_path "$(dirname "$2")" "$lang")" \
+    nav="$(mk_nav "$1" "$n" "$lang")" \
+    content="$3" \
+    document="$(mk_title "$(dirname "$2")" "$lang")" \
+    webroot="$(echo "$webroot" | sed 's_/\+$__')" \
+      awk '
+        $1 == "&$path;" {print ENVIRON["curpath"]; next}
+        $1 == "&$nav;" {print ENVIRON["nav"]; next}
+        $1 == "&$content;" {print ENVIRON["content"]; next}
+        {
+          gsub(/&\$document;/, ENVIRON["document"])
+          gsub(/&\$webroot;/, ENVIRON["webroot"])
+          s = $0
+          while (1) {
+            i = match(s, /&\$[-a-zA-Z_]+;/)
+            if (i) {
+              x = substr(s, RSTART + 2, RLENGTH - 3)
+              t = ""
+              if (RSTART > 1)
+                t = substr(s, 1, RSTART - 1)
+              t = t ENVIRON["tpl_" x]
+              n = length(s) - RSTART - RLENGTH + 1
+              t = t substr(s, RSTART + RLENGTH, n)
+              s = t
+            } else
+              break
+          }
+          $0 = s
+          print
+        }' <"$tpl" >"$name"
+  fi
 }
 
 walk_dir() {
-	for f in "$1"/*; do
+  for f in "$1"/*; do
     f="$(cleanname "$f")"
     webdir="$2/$(basename "$f")"
-		if test -d "$f" ; then
+    if test -d "$f" ; then
       if ! test -f "$f/index.html" -o -f "$f/index.md" ; then
         echo '' > "$f/index.md"
       fi
-			walk_dir "$f" "$webdir"
-		elif test -f "$f"; then
-			case "$f" in
-				*.md) mk_page "$f" "$webdir";;
-			esac
-		fi
-	done
+      walk_dir "$f" "$webdir"
+    elif test -f "$f"; then
+      case "$f" in
+        *.md) mk_page "$f" "$webdir" "$("$md2html" < "$f")";;
+      esac
+    fi
+  done
 }
+
+docroot='.'
+test -n "$1" && docroot="$1"
+test -f "$docroot/conf" && . "$docroot/conf"
 
 (cd "$docroot" && walk_dir .)

@@ -1,0 +1,12 @@
+BEGIN {FS = "\t"}
+{
+  class = ""
+  if (NR == 1 && $1 == "*")
+    class = " class='back'"
+  if ($2 == this)
+    class = " class='cur_page'"
+  if ($1 == "*")
+    printf("<li%s><a class='nav_item' href='%s'>%s</a></li>\n", class, $3, $2)
+  else if ($1 == "=")
+    printf("<li>%s</li>\n", $2)
+}

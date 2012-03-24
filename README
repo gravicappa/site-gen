@@ -9,7 +9,50 @@ markdown files. It has features:
 
 ## Usage
 
-    gingergen <docroot>
+If you just want to process your site type
+
+		./gingergen <docroot>
+
+If your site is multilingual and you want your apache to make use of
+HTTP request flag Accept-Language you can use convenience scripts
+
+    ./build <docroot>
+
+build executes next tools:
+
+* configure
+* gingergen
+* postprocess
+
+`configure` makes copy of template files from templates directory to docroot
+and constructs .htaccess accordingly to language directories.
+
+`gingergen` generates html files from md ones.
+
+`postprocess` compresses new html files in order to save Internet bandwidth
+and to speed up site loading.
+
+### Sample Apache2 configuration
+
+  In shell:
+
+    sudo a2enmod headers
+    sudo a2enmod rewrite
+
+  In apache site configuration file /etc/apache2/sites-enabled/mysite:
+
+		...
+		Alias /webroot "/real/directory"
+		<Directory "/real/directory">
+			DirectoryIndex index.html
+			Options FollowSymLinks MultiViews
+			AllowOverride All
+			Order allow, deny
+			allow from all
+		</Directory>
+		...
+
+  Note, that `/webroot/` is value for webroot parameter in conf file.
 
 ## Docroot structure
 
@@ -27,6 +70,8 @@ markdown files. It has features:
         _ru/
           conf
           index.md
+					one.md
+					one.name
         _en/
           conf
           index.md
@@ -53,48 +98,66 @@ for language *en* will be processed these files: `img1.png`, `img2.png`,
 
 File `conf` is an ordinary sh-file which is sourced by gingergen. When
 processing a directory first `<dir>/conf` is sourced then
-`<dir>/_<language>/conf`. 
+`<dir>/_<language>/conf`.
 
 Sample conf:
 
     webroot='/wiki/'
     webname='Wiki'
+    template='path/template'
+    nav_template='path/nav_template'
+    path_template='path/path_template'
     name='Directory name'
     show=(yes|true|1|no|false|0)
+    export tpl_X1=Value1
+    export tpl_X2=Value2
 
 - *webroot*: sets `webroot` variable. `webroot` is a URL prefix of wiki.
 - *webname*: is a name of root node in wiki.
+- *template*: relative to docroot path to template file.
+- *path_template*: relative to docroot path to path template script.
+- *nav_template*: relative to docroot path to nav template script.
 - *name*: sets displayed name of directory (useful for naming directories in
   different languages).
 - *show*: sets whether directory is displayed on navigation menus
+- *tpl_VAR*: sets variable for substitution in template. `&$VAR;` entry in
+  template is replaced by exported variable `tpl_VAR`.
 
 Variables *webroot* and *webname* should be used only in `<docroot>/conf` and
 `<docroot>/_<language>/conf`.
 
+## Names of items
+
+Name of directory item can be configured in directory's `conf` file. If you
+want that `sample.md` is listed in navigation as `A` then create file
+`sample.name` with `A` as contents.
+
 ## Templates
 
-### `<docroot>/template` 
+### `<docroot>/template`
 
 `<docroot>/template` file is an ordinary html-document which contains
 placeholders for content items. Known placeholders are:
 
-- *$document*: document's full name (e.g. *ChapterA/SectionB/SubsectionC*),
-- *$webroot*: contents of *webroot* variable (see `conf` files description),
-- *$path*: navigational item to move from current position to homepage,
-- *$nav*: navigational menu to move to items in current section,
-- *$content*: document's content.
+- *&$document;*: document's full name (e.g. *ChapterA/SectionB/SubsectionC*),
+- *&$webroot;*: contents of *webroot* variable (see `conf` files description),
+- *&$path;*: navigational item to move from current position to homepage,
+- *&$nav;*: navigational menu to move to items in current section,
+- *&$content;*: document's content.
 
-Placeholders *$path*, *$nav*, *$content* must be the only items in line:
+Placeholders *&$path;*, *&$nav;*, *&$content;* must be the only items in line:
 
 **wrong:**
 
-    <div id='nav'>$nav</div>
+    <div id='nav'>&$nav;</div>
 
 **right:**
 
     <div id='nav'>
-      $nav
+      &$nav;
     </div>
+
+You can define custom placeholders for template in `conf`.
 
 ### `<docroot>/nav_template`
 

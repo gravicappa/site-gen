@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>&$document; - SiteName</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="Content-Type" content="text/html"; charset=UTF-8/>
+    <link rel="stylesheet" href="&$webroot;/style.css" type="text/css"/>
+  </head>
+  <body>
+    <div id='header'>
+    <em>SiteName — CompanyName</em>
+    <!--<img src='$webroot/logo.png' alt='company_logo'/>-->
+    </div>
+    <div id='path'>
+      &$path;
+    </div>
+    <div class='menu_border'></div>
+    <div id='nav'>
+      <ul>
+        &$nav;
+      </ul>
+    </div>
+    <div id='content'>
+      &$content;
+    </div>
+    <div id='footer'>
+      <div id='footer_in'>
+        (c) 2012 CompanyName
+      </div>
+    </div>
+  </body>
+</html>
