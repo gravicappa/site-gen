@@ -38,6 +38,7 @@ and to speed up site loading.
 
     sudo a2enmod headers
     sudo a2enmod rewrite
+    sudo a2enmod expires
 
   In apache site configuration file /etc/apache2/sites-enabled/mysite:
 
