@@ -24,12 +24,18 @@ for i in "$docroot"/_*; do
   langs="$langs $(basename "$i")"
 done
 
+rewrite_base="${webroot%%\/}"
+
+if [ -z "$rewrite_base" ] ; then
+  rewrite_base="/"
+fi
+
 cat > "$docroot"/.htaccess <<END
 AddEncoding gzip .gz
 
 RewriteEngine On
 
-RewriteBase ${webroot%%\/}
+RewriteBase ${rewrite_base}
 
 END
 
