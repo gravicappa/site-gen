@@ -1,12 +1,12 @@
 body {
   padding: 0;
   margin: 0;
-  font-family: serif;
 }
 
 #content {
   background-color: white;
   padding: 0.5em 2em 0.5em 2em;
+  font-family: serif;
 }
 
 #content pre code {
