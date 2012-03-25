@@ -87,9 +87,9 @@ mk_nav() {
   {
     if test "$dir" != '.' ; then
       if test _ = "$3" ; then
-        printf "*\t..\t../%sindex.html\n" "$p"
+        printf "..\t..\t../%sindex.html\n" "$p"
       else
-        printf "*\t..\t../%sindex.html\n" "$p$3/"
+        printf "..\t..\t../%sindex.html\n" "$p$3/"
       fi
     else
       printf "_\n"
