@@ -123,6 +123,8 @@ Sample conf:
 
     webroot='/wiki/'
     webname='Wiki'
+    not_found_page='404/404.html'
+    allowed_files='css html jpg png js ico gif tiff svg txt'
     template='path/template'
     nav_template='path/nav_template'
     path_template='path/path_template'
@@ -133,6 +135,10 @@ Sample conf:
 
 - *webroot*: sets `webroot` variable. `webroot` is a URL prefix of wiki.
 - *webname*: is a name of root node in wiki.
+- *not_found_page*: page is shown on 404 error
+- *allowed_files*: list of file extensions, represent file types which
+  are allowed to send to user. Try to get other files will result 404 error.
+  If *allowed_files* is empty then every file is allowed to be sent to user.
 - *template*: relative to docroot path to template file.
 - *path_template*: relative to docroot path to path template script.
 - *nav_template*: relative to docroot path to nav template script.
@@ -144,6 +150,9 @@ Sample conf:
 
 Variables *webroot* and *webname* should be used only in `<docroot>/conf` and
 `<docroot>/_<language>/conf`.
+
+Variables *not_found_page* and *allowed_files* should be used only in 
+`<docroot>/conf`.
 
 ## Names of items
 
