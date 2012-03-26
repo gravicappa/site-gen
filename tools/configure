@@ -1,6 +1,7 @@
 #!/bin/sh
 
 docroot='.'
+
 test -n "$1" && docroot="$1"
 test -f "$docroot/conf" && . "$docroot/conf"
 
@@ -48,12 +49,35 @@ RewriteCond %{HTTP:Accept-Encoding} gzip
 RewriteCond %{HTTP_USER_AGENT} !Safari
 RewriteCond %{REQUEST_FILENAME} \.css\$ [OR]
 RewriteCond %{REQUEST_FILENAME} \.js\$ [OR]
+RewriteCond %{REQUEST_FILENAME} \.txt\$ [OR]
 RewriteCond %{REQUEST_FILENAME} \.html\$
 RewriteCond %{REQUEST_FILENAME}.gz -f
-RewriteRule ^(.*)\.(css|js|html)?\$ \$1.\$2.gz [QSA,L]
+RewriteRule ^(.*)\.(css|js|html|txt)?\$ \$1.\$2.gz [QSA,L]
+
+END
+
+if [ -n "${allowed_files}" ]; then
+  for i in ${allowed_files}; do
+    echo "RewriteCond %{REQUEST_FILENAME} !\.$i\$" >> "$docroot"/.htaccess    
+    echo "RewriteCond %{REQUEST_FILENAME} !\.${i}\.gz\$" >> "$docroot"/.htaccess    
+  done
+  echo "RewriteCond %{REQUEST_FILENAME} !\/$" >> "$docroot"/.htaccess    
+  echo "RewriteRule (.*) ${rewrite_base}${not_found_page} [QSA,L]" >> "$docroot"/.htaccess
+fi
+
+cat >> "$docroot"/.htaccess <<END
+
+ErrorDocument 404 ${rewrite_base}${not_found_page}
 
 <IfModule mod_headers.c>
     Header append Vary Accept-Encoding,User-Agent
+    <FilesMatch .*\.txt$>
+        ForceType text/plain
+    </FilesMatch>
+    <FilesMatch .*\.txt\.gz\$>
+        ForceType text/plain
+        Header set Content-Encoding gzip
+    </FilesMatch>
     <FilesMatch .*\.js\.gz\$>
         ForceType text/javascript
         Header set Content-Encoding gzip
@@ -76,6 +100,7 @@ RewriteRule ^(.*)\.(css|js|html)?\$ \$1.\$2.gz [QSA,L]
     ExpiresByType image/png "access plus 1 week"
     ExpiresByType image/jpeg "access plus 1 week"
     ExpiresByType image/gif "access plus 1 week"
+    ExpiresByType image/ico "access plus 1 week"
     ExpiresByType image/tiff "access plus 1 week"
     ExpiresByType image/svg+xml "access plus 1 week"
     ExpiresByType text/css "access plus 1 week"
@@ -86,3 +111,16 @@ RewriteRule ^(.*)\.(css|js|html)?\$ \$1.\$2.gz [QSA,L]
 FileETag MTime Size
 
 END
+
+old_dir=`pwd`
+cd "${docroot}"
+
+echo "User-agent: *" > "${docroot}/robots.txt"
+
+find . -name '*gz' -o -name '*.md' -o -name '*.css' -o -name 'conf' -o -name '*template' -o -name 'template_*'|\
+  sed "s|^\./|Disallow: ${rewrite_base}|"\
+  >> "${docroot}/robots.txt"
+
+echo "Disallow: ${rewrite_base}.git" >> "${docroot}/robots.txt"
+
+cd "${old_dir}"
