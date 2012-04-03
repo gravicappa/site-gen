@@ -1,11 +1,14 @@
-#!/bin/dash
+#!/bin/sh
 
-md2html='sundown'
 webname='HOME'
 webroot='/prinar/'
 template="template"
 nav_template="nav_template"
 path_template="path_template"
+
+process_md() {
+  sundown
+}
 
 cleanname() {
   echo "$1" | sed 's_/*/_/_g'
@@ -134,11 +137,15 @@ mk_page() {
   local n="$(basename "$document")"
   local altname="$(echo "$1" | sed 's/.[^.]*$/.name/')"
   test -f "$altname" && IFS= read -r n < "$altname"
+  export webname
+  export webroot
+  export file="$1"
+  content="$(process_md < "$1")"
 
   if true || test "$name" -ot "$1" ; then
     curpath="$(mk_path "$(dirname "$2")" "$lang")" \
     nav="$(mk_nav "$1" "$n" "$lang")" \
-    content="$3" \
+    content="$content" \
     document="$(mk_title "$(dirname "$2")" "$lang")" \
     webroot="$(echo "$webroot" | sed 's_/\+$__')" \
       awk '
@@ -174,13 +181,19 @@ walk_dir() {
     f="$(cleanname "$f")"
     webdir="$2/$(basename "$f")"
     if test -d "$f" ; then
-      if ! test -f "$f/index.html" -o -f "$f/index.md" ; then
-        echo '' > "$f/index.md"
-      fi
-      walk_dir "$f" "$webdir"
+      test -f "$f/conf" && . "$f/conf"
+      case "$show" in
+        false|no|0) ;;
+        *)
+          if ! test -f "$f/index.html" -o -f "$f/index.md" ; then
+            echo '' > "$f/index.md"
+          fi
+          walk_dir "$f" "$webdir"
+          ;;
+      esac
     elif test -f "$f"; then
       case "$f" in
-        *.md) mk_page "$f" "$webdir" "$("$md2html" < "$f")";;
+        *.md) mk_page "$f" "$webdir";;
       esac
     fi
   done

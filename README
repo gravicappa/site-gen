@@ -132,6 +132,10 @@ Sample conf:
     show=(yes|true|1|no|false|0)
     export tpl_X1=Value1
     export tpl_X2=Value2
+     
+		process_md() {
+			tools/my_md_toolXX | sundown | tools/my_html_toolYY
+		}
 
 - *webroot*: sets `webroot` variable. `webroot` is a URL prefix of wiki.
 - *webname*: is a name of root node in wiki.
@@ -147,6 +151,10 @@ Sample conf:
 - *show*: sets whether directory is displayed on navigation menus
 - *tpl_VAR*: sets variable for substitution in template. `&$VAR;` entry in
   template is replaced by exported variable `tpl_VAR`.
+- *process_md*: is a *sh* function that is called when `*.md` file is
+	converted to HTML. Markdown text goes to *process_md*'s standard input and
+	the function emits resulting HTML to standard output. By default it just
+	calls *sundown*.
 
 Variables *webroot* and *webname* should be used only in `<docroot>/conf` and
 `<docroot>/_<language>/conf`.
