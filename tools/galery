@@ -1,6 +1,37 @@
 #!/bin/sh
-
-style='margin: 10px; border: 5px solid #555'
+# NAME
+#
+#   gingergen galery generation script
+#
+# SYNTAX
+#
+# .Galery width: <width> dir: <dir> ext: <extension>
+#
+# width: the width of thumbnail images (images are scaled proportionally)
+# dir: relative to .md file directory with images
+# ext: extension of images (png, jpg, ... ) in image directory
+#
+# DESCRIPTION
+#
+# Finds '.Galery ...' line in standard input and outputs generated
+# Markdown/HTML code of image galery instead on standard output. Other lines
+# are printed unchanged.
+#
+# Image galery is wrapped in 'div' with class 'image_galery'. Each galery
+# entry has DOM-path '.image_galery.a.img' so your CSS can contain something
+# like
+#  
+#  .image_galery {
+#    ...
+#  }
+#  
+#  .image_galery a img {
+#    border: 5px solid #999;
+#    margin: 12px;
+#  }
+#
+# REQUIREMENTS
+# galery uses `convert` from ImageMagick.
 
 mkgalery() {
   w=200
