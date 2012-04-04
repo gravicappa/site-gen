@@ -21,9 +21,9 @@ mkgalery() {
     cd "$filedir"
     for f in "$dir"/*."$ext"; do
       if test -f "$f"; then
-        thumb="thumb/$(basename "$f")"
+        thumb="$dir/thumb/$(basename "$f")"
         if ! test -f "$thumb"; then
-          mkdir -p thumb
+          mkdir -p "$dir/thumb"
           convert "$f" -resize "$w" "$thumb"
         fi
         printf "<a href='%s'>" "$f"

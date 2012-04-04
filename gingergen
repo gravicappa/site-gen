@@ -181,17 +181,10 @@ walk_dir() {
     f="$(cleanname "$f")"
     webdir="$2/$(basename "$f")"
     if test -d "$f" ; then
-      show=yes
-      test -f "$f/conf" && . "$f/conf"
-      case "$show" in
-        false|no|0) ;;
-        *)
-          if ! test -f "$f/index.html" -o -f "$f/index.md" ; then
-            echo '' > "$f/index.md"
-          fi
-          walk_dir "$f" "$webdir"
-          ;;
-      esac
+      if ! test -f "$f/index.html" -o -f "$f/index.md" ; then
+        echo '' > "$f/index.md"
+      fi
+      walk_dir "$f" "$webdir"
     elif test -f "$f"; then
       case "$f" in
         *.md) mk_page "$f" "$webdir";;
