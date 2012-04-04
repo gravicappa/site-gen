@@ -140,6 +140,8 @@ mk_page() {
   export webname
   export webroot
   export file="$(echo "$1" | sed 's_^\./__')"
+  test -f "./$1/conf" && . "./$1/conf"
+  test -f "./$1/$lang/conf" && . "./$p/$lang/conf"
   content="$(process_md < "$1")"
 
   if true || test "$name" -ot "$1" ; then
