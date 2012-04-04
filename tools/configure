@@ -112,15 +112,14 @@ FileETag MTime Size
 
 END
 
-old_dir=`pwd`
-cd "${docroot}"
+(
+  cd "$docroot"
+  echo "User-agent: *" >"$docroot/robots.txt"
 
-echo "User-agent: *" > "${docroot}/robots.txt"
+  find . -name '*.gz' -o -name '*.md' -o -name '*.css' -o -name 'conf' \
+       -o -name '*template' -o -name 'template_*' \
+  | sed "s|^\./|Disallow: $rewrite_base|" \
+  >> "$docroot/robots.txt"
 
-find . -name '*gz' -o -name '*.md' -o -name '*.css' -o -name 'conf' -o -name '*template' -o -name 'template_*'|\
-  sed "s|^\./|Disallow: ${rewrite_base}|"\
-  >> "${docroot}/robots.txt"
-
-echo "Disallow: ${rewrite_base}.git" >> "${docroot}/robots.txt"
-
-cd "${old_dir}"
+  echo "Disallow: $rewrite_base.git" >> "$docroot/robots.txt"
+)

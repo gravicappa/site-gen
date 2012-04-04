@@ -4,11 +4,12 @@ docroot='.'
 test -n "$1" && docroot="$1"
 test -f "$docroot/conf" && . "$docroot/conf"
 
-find "$docroot" -name '*.css' -o -name '*.html' -o -name '*.js' -o -name '*.txt' \
+find "$docroot" -name '*.css' -o -name '*.html' -o -name '*.js' \
+     -o -name '*.txt' \
 | {
-   while IFS= read -r line; do
-     if [ "$line" -nt "$line.gz" -o ! -f "$line.gz" ] ; then
-       gzip -9 -c "$line" > "$line.gz";
+   while IFS= read -r file; do
+     if [ "$line" -nt "$file.gz" -o ! -f "$file.gz" ] ; then
+       gzip -9 < "$file" > "$file.gz";
      fi
    done
  }
