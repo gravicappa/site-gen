@@ -1,0 +1,43 @@
+#!/bin/sh
+
+style='margin: 10px; border: 5px solid #555'
+
+mkgalery() {
+  w=200
+  ext=png
+  dir="$(echo "$file" | sed 's/\.[^.]*$//')"
+  shift
+  while test "$#" -gt 0; do
+    case "$1" in
+      width:) w="$2"; shift;;
+      dir:) dir="$2"; shift;;
+      ext:) ext="$2"; shift;;
+    esac
+    shift
+  done
+  filedir="$(dirname "$file")"
+  printf "%s\n<div class='image_galery'>\n" ---
+  (
+    cd "$filedir"
+    for f in "$dir"/*."$ext"; do
+      if test -f "$f"; then
+        thumb="thumb/$(basename "$f")"
+        if ! test -f "$thumb"; then
+          mkdir -p thumb
+          convert "$f" -resize "$w" "$thumb"
+        fi
+        printf "<a href='%s'>" "$f"
+        a="$(basename "$f" | sed 's/\.[^.]*$//')"
+        printf "<img src='%s' alt='%s'/></a>\n" "$thumb" "$a"
+      fi
+    done
+  )
+  printf "</div>\n---\n"
+}
+
+while IFS= read -r line; do
+	case "$line" in
+		'.Galery '*) eval mkgalery "$line" ;;
+		*) echo "$line"
+	esac
+done

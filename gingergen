@@ -139,7 +139,7 @@ mk_page() {
   test -f "$altname" && IFS= read -r n < "$altname"
   export webname
   export webroot
-  export file="$1"
+  export file="$(echo "$1" | sed 's_^\./__')"
   content="$(process_md < "$1")"
 
   if true || test "$name" -ot "$1" ; then
@@ -181,6 +181,7 @@ walk_dir() {
     f="$(cleanname "$f")"
     webdir="$2/$(basename "$f")"
     if test -d "$f" ; then
+      show=yes
       test -f "$f/conf" && . "$f/conf"
       case "$show" in
         false|no|0) ;;
