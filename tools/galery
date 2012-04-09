@@ -5,30 +5,36 @@
 #
 # SYNTAX
 #
-# .Galery width: <width> dir: <dir> ext: <extension>
+# .Galery width: <width> dir: <dir> ext: <ext> default_desc: <desc>
+#         class: <class>
 #
-# width: the width of thumbnail images (images are scaled proportionally)
+# width: the width of thumbnail images (images are scaled proportionally).
+#   Default value: 200
 # dir: relative to .md file directory with images
-# ext: extension of images (png, jpg, ... ) in image directory
+# ext: extension of images (png, jpg, ... ) in image directory.
+#   Default value: png
+# desc: description text to use instead of filename if description is not
+#   provided explicitely by file (<dir>/<img>.<ext>.desc)
+# class: class of a galery div. Nested galery items will be <class>_img,
+#   <class>_desc. Default value: 'image_galery'.
 #
 # DESCRIPTION
 #
 # Finds '.Galery ...' line in standard input and outputs generated
-# Markdown/HTML code of image galery instead on standard output. Other lines
-# are printed unchanged.
+# HTML code of image galery instead on standard output. Other lines
+# are printed unchanged. Note that there is no whitespace before '.Galery'.
 #
-# Image galery is wrapped in 'div' with class 'image_galery'. Each galery
-# entry has DOM-path '.image_galery.a.img' so your CSS can contain something
-# like
-#  
-#  .image_galery {
-#    ...
-#  }
-#  
-#  .image_galery a img {
-#    border: 5px solid #999;
-#    margin: 12px;
-#  }
+# Image galery is generated from images with extension <ext> in directory
+# <dir> (which is relative to directory of processed .md-file). Each image in
+# galery has a description text which is
+#
+# - taken from <dir>/<img>.<ext>.desc.$lang if file exists
+# - taken from <dir>/<img>.<ext>.desc if file exists
+# - equals to `default_desc` if set
+# - equals to <img>
+#
+# Image galery is wrapped in 'div' with class '<class>'. Each galery entry has
+# DOM-path of element '.<class>_img' and description '.<class>_desc'.
 #
 # REQUIREMENTS
 # galery uses `convert` from ImageMagick.
@@ -37,17 +43,21 @@ mkgalery() {
   w=200
   ext=png
   dir="$(echo "$file" | sed 's/\.[^.]*$//')"
+  cls='image_galery'
+  defdesc=''
   shift
   while test "$#" -gt 0; do
     case "$1" in
       width:) w="$2"; shift;;
       dir:) dir="$2"; shift;;
       ext:) ext="$2"; shift;;
+      class:) cls="$2"; shift;;
+      default_desc:) defdesc="$2"; shift;;
     esac
     shift
   done
   filedir="$(dirname "$file")"
-  printf "%s\n<div class='image_galery'>\n" ---
+  printf "\n<div class='$cls'>\n"
   (
     cd "$filedir"
     for f in "$dir"/*."$ext"; do
@@ -57,18 +67,28 @@ mkgalery() {
           mkdir -p "$dir/thumb"
           convert "$f" -resize "$w" "$thumb"
         fi
-        printf "<a href='%s'>" "$f"
+        desc="$defdesc"
+        test -z "$desc" && desc="$(basename "$f" | sed 's/\.[^.]*$//')"
+        test -f "$f.desc" && desc="$(cat "$f.desc")"
+        test -f "$f.desc.$lang" && desc="$(cat "$f.desc.$lang")"
+        s="float: left; width: auto; height: auto;"
+        printf "\n<div class='${cls}_img' style='$s'>\n"
+        printf "<a target='_blank' href='%s'>\n" "$f"
         a="$(basename "$f" | sed 's/\.[^.]*$//')"
-        printf "<img src='%s' alt='%s'/></a>\n" "$thumb" "$a"
+        printf "<img src='%s' alt='%s' />\n" "$thumb" "$a"
+        echo "</a>"
+        s="width: ${w}px;"
+        printf "<div class='${cls}_desc' style='%s'>%s</div>" "$s" "$desc"
+        printf "</div>"
       fi
     done
   )
-  printf "</div>\n---\n"
+  printf "<div style='clear:both;'></div></div>\n"
 }
 
-while IFS= read -r line; do
-	case "$line" in
-		'.Galery '*) eval mkgalery "$line" ;;
-		*) echo "$line"
-	esac
+while IFS= read line; do
+  case "$line" in
+    '.Galery '*) eval mkgalery "$line" ;;
+    *) echo "$line"
+  esac
 done
