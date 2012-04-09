@@ -1,0 +1,61 @@
+#!/bin/sh
+# NAME
+#   gingergen table of contents generation script
+#
+# SYNTAX
+# .Table-of-contents
+#
+# DESCRIPTION
+# When finds `.Table-of-contents` line in source markdown insert contents of a
+# whole page. Can be used multiple times in a single document. Wraps table of
+# contents (TOC) in div with class `.toc`. TOC itself is a nested ul lists.
+
+awk '
+BEGIN {
+  nsec = 4
+  for (i = 1; i <= nsec; ++i)
+    sec[i] = 0
+}
+
+/^#/ {
+  match($1, /^[#]+/)
+  lvl = RLENGTH
+
+  for (i = nsec; i > lvl; --i)
+    sec[i] = 0
+  sec[lvl]++
+  s = "toc"
+  for (i = 1; i <= nsec; ++i)
+    s = s "_" sec[i]
+  line[++n] = sprintf("<a name=\"%s\">", s) "</a>"
+  line[++n] = $0
+
+  sub(/^[#]*[ \t]*/, "", $0)
+  a = ""
+  if (lvl < toc_lvl) {
+    a = "</li>"
+    for (i = toc_lvl - lvl; i > 0; --i)
+      a = a "</ul>\n</li>\n"
+  } else if (lvl > toc_lvl) {
+    for (i = lvl - toc_lvl; i > 0; --i)
+      a = a "<ul>\n"
+  } else
+    a = "</li>\n"
+  toc[tn++] = a "<li>" sprintf("<a href=\"#%s\">%s</a>", s, $0)
+  toc_lvl = lvl
+  next
+}
+
+{line[++n] = $0}
+
+END {
+  for (i = 0; i <= n; ++i) {
+    if (line[i] ~ /^.Table-of-contents/) {
+      print("\n<div class=\"toc\">\n")
+      for (j = 0; j <= tn; ++j)
+        print(toc[j])
+      print("</div>\n\n")
+    } else
+      print(line[i])
+  }
+}'
