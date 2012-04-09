@@ -137,8 +137,7 @@ mk_page() {
   local n="$(basename "$document")"
   local altname="$(echo "$1" | sed 's/.[^.]*$/.name/')"
   test -f "$altname" && IFS= read -r n < "$altname"
-  export webname
-  export webroot
+  export webname webroot lang
   export file="$(echo "$1" | sed 's_^\./__')"
   test -f "./$1/conf" && . "./$1/conf"
   test -f "./$1/$lang/conf" && . "./$p/$lang/conf"
