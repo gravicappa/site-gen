@@ -1,10 +1,8 @@
 #!/bin/sh
 # NAME
-#
 #   gingergen galery generation script
 #
 # SYNTAX
-#
 # .Galery width: <width> dir: <dir> ext: <ext> default_desc: <desc>
 #         class: <class>
 #
@@ -19,7 +17,6 @@
 #   <class>_desc. Default value: 'image_galery'.
 #
 # DESCRIPTION
-#
 # Finds '.Galery ...' line in standard input and outputs generated
 # HTML code of image galery instead on standard output. Other lines
 # are printed unchanged. Note that there is no whitespace before '.Galery'.
@@ -28,7 +25,7 @@
 # <dir> (which is relative to directory of processed .md-file). Each image in
 # galery has a description text which is
 #
-# - taken from <dir>/<img>.<ext>.desc.$lang if file exists
+# - taken from <dir>/<img>.<ext>.desc_$lang if file exists
 # - taken from <dir>/<img>.<ext>.desc if file exists
 # - equals to `default_desc` if set
 # - equals to <img>
@@ -70,7 +67,7 @@ mkgalery() {
         desc="$defdesc"
         test -z "$desc" && desc="$(basename "$f" | sed 's/\.[^.]*$//')"
         test -f "$f.desc" && desc="$(cat "$f.desc")"
-        test -f "$f.desc.$lang" && desc="$(cat "$f.desc.$lang")"
+        test -f "$f.desc_$lang" && desc="$(cat "$f.desc_$lang")"
         s="float: left; width: auto; height: auto;"
         printf "\n<div class='${cls}_img' style='$s'>\n"
         printf "<a target='_blank' href='%s'>\n" "$f"
