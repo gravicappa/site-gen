@@ -3,7 +3,7 @@
 #   gingergen galery generation script
 #
 # SYNTAX
-# .Galery width: <width> dir: <dir> ext: <ext> default_desc: <desc>
+# .Galery width: <width> dir: <dir> ext: <ext> show_desc: <show_desc>
 #         class: <class>
 #
 # width: the width of thumbnail images (images are scaled proportionally).
@@ -11,8 +11,9 @@
 # dir: relative to .md file directory with images
 # ext: extension of images (png, jpg, ... ) in image directory.
 #   Default value: png
-# desc: description text to use instead of filename if description is not
-#   provided explicitely by file (<dir>/<img>.<ext>.desc)
+# show_desc: whether description is displayed
+#   Possible values: false | no | 0 | true | yes | 1
+#   Default value: no
 # class: class of a galery div. Nested galery items will be <class>_img,
 #   <class>_desc. Default value: 'image_galery'.
 #
@@ -25,10 +26,10 @@
 # <dir> (which is relative to directory of processed .md-file). Each image in
 # galery has a description text which is
 #
-# - taken from <dir>/<img>.<ext>.desc_$lang if file exists
-# - taken from <dir>/<img>.<ext>.desc if file exists
-# - equals to `default_desc` if set
-# - equals to <img>
+# - taken from <dir>/<img>.<ext>.desc_<lang> if file exists
+# - or taken from <dir>/<img>.<ext>.desc if file exists
+# - or equals to <img> component of an image with cut number prefix so if
+#   image path is `one/05_some_image.png` then desc would be `some_image`.
 #
 # Image galery is wrapped in 'div' with class '<class>'. Each galery entry has
 # DOM-path of element '.<class>_img' and description '.<class>_desc'.
@@ -41,7 +42,7 @@ mkgalery() {
   ext=png
   dir="$(echo "$file" | sed 's/\.[^.]*$//')"
   cls='image_galery'
-  defdesc=''
+  showdesc='no'
   shift
   while test "$#" -gt 0; do
     case "$1" in
@@ -49,7 +50,7 @@ mkgalery() {
       dir:) dir="$2"; shift;;
       ext:) ext="$2"; shift;;
       class:) cls="$2"; shift;;
-      default_desc:) defdesc="$2"; shift;;
+      show_desc:) showdesc="$2"; shift;;
     esac
     shift
   done
@@ -64,18 +65,24 @@ mkgalery() {
           mkdir -p "$dir/thumb"
           convert "$f" -resize "$w" "$thumb"
         fi
-        desc="$defdesc"
-        test -z "$desc" && desc="$(basename "$f" | sed 's/\.[^.]*$//')"
-        test -f "$f.desc" && desc="$(cat "$f.desc")"
-        test -f "$f.desc_$lang" && desc="$(cat "$f.desc_$lang")"
+        case "$showdesc" in
+          false|no|0) desc='';;
+          *)
+            desc="$(basename "$f" | sed 's/\.[^.]*$//;s/^[0-9]\+_//')"
+            test -f "$f.desc" && desc="$(cat "$f.desc")"
+            test -f "$f.desc$lang" && desc="$(cat "$f.desc$lang")"
+            ;;
+        esac
         s="float: left; width: auto; height: auto;"
         printf "\n<div class='${cls}_img' style='$s'>\n"
         printf "<a target='_blank' href='%s'>\n" "$f"
-        a="$(basename "$f" | sed 's/\.[^.]*$//')"
-        printf "<img src='%s' alt='%s' />\n" "$thumb" "$a"
+        printf "<img src='%s' title='%s'/>\n" "$thumb" "$desc"
         echo "</a>"
-        s="width: ${w}px;"
-        printf "<div class='${cls}_desc' style='%s'>%s</div>" "$s" "$desc"
+        if test -n "$desc"; then
+          s="width: ${w}px;"
+          printf "<div class='%s_desc' style='%s' title='%s'>%s</div>" \
+                 "$cls" "$s" "$desc" "$desc"
+        fi
         printf "</div>"
       fi
     done

@@ -131,19 +131,20 @@ mk_page() {
   test -f "$lang/conf" && . "$lang/conf"
 
   local name="$(echo "$1" | sed 's/.[^.]*$/.html/')"
-  local document="$(echo "$2" | sed 's/.[^.]*$//;s_^/__')"
-  tpl="$template"
-  test -f "$template$lang" && local tpl="$template$lang"
-  local n="$(basename "$document")"
-  local altname="$(echo "$1" | sed 's/.[^.]*$/.name/')"
-  test -f "$altname" && IFS= read -r n < "$altname"
-  export webname webroot lang
-  export file="$(echo "$1" | sed 's_^\./__')"
-  test -f "./$1/conf" && . "./$1/conf"
-  test -f "./$1/$lang/conf" && . "./$p/$lang/conf"
-  content="$(process_md < "$1")"
 
   if true || test "$name" -ot "$1" ; then
+    local document="$(echo "$2" | sed 's/.[^.]*$//;s_^/__')"
+    tpl="$template"
+    test -f "$template$lang" && local tpl="$template$lang"
+    local n="$(basename "$document")"
+    local altname="$(echo "$1" | sed 's/.[^.]*$/.name/')"
+    test -f "$altname" && IFS= read -r n < "$altname"
+    export webname webroot lang
+    export file="$(echo "$1" | sed 's_^\./__')"
+    test -f "./$1/conf" && . "./$1/conf"
+    test -f "./$1/$lang/conf" && . "./$p/$lang/conf"
+    content="$(process_md < "$1")"
+
     curpath="$(mk_path "$(dirname "$2")" "$lang")" \
     nav="$(mk_nav "$1" "$n" "$lang")" \
     content="$content" \
