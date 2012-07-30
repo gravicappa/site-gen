@@ -17,6 +17,16 @@ BEGIN {
     sec[i] = 0
 }
 
+/^[=]+$/ { 
+  $0 = sprintf("# %s", line[n])
+  n--
+}
+
+/^[-]+$/ { 
+  $0 = sprintf("## %s", line[n])
+  n--
+}
+
 /^#/ {
   match($1, /^[#]+/)
   lvl = RLENGTH
