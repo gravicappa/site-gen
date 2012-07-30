@@ -90,14 +90,12 @@ mkgalery() {
   printf "<div style='clear:both;'></div></div>\n"
 }
 
-eof=0
-
-while [ $eof -eq 0 ] ; do
-  IFS= read line
-  res=$?
+eof=''
+while true; do
+  IFS= read -r line || eof=1
   case "$line" in
     '.Galery '*) eval mkgalery "$line" ;;
     *) echo "$line"
   esac
-  if [ -z "$line" -a $res -ne 0 ]; then eof=1; fi
+  test -n "$eof" && exit
 done
