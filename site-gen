@@ -1,7 +1,7 @@
 #!/bin/sh
 
-webname='HOME'
-webroot='/prinar/'
+webname='Sample'
+webroot='/var/www/'
 template="template"
 nav_template="nav_template"
 path_template="path_template"

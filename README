@@ -11,7 +11,7 @@ markdown files. It has features:
 
 If you just want to process your site type
 
-    ./gingergen <docroot>
+    ./site-gen <docroot>
 
 If your site is multilingual and you want your apache to make use of
 HTTP request flag Accept-Language you can use convenience scripts
@@ -21,13 +21,13 @@ HTTP request flag Accept-Language you can use convenience scripts
 build executes next tools:
 
 * configure
-* gingergen
+* site-gen
 * postprocess
 
 `configure` makes copy of template files from templates directory to docroot
 and constructs .htaccess accordingly to language directories.
 
-`gingergen` generates html files from md ones.
+`site-gen` generates html files from md ones.
 
 `postprocess` compresses new html files in order to save Internet bandwidth
 and to speed up site loading.
@@ -115,7 +115,7 @@ will look like:
 
 ## conf file contents
 
-File `conf` is an ordinary sh-file which is sourced by gingergen. When
+File `conf` is an ordinary sh-file which is sourced by site-gen. When
 processing a directory first `<dir>/conf` is sourced then
 `<dir>/_<language>/conf`.
 
@@ -176,7 +176,7 @@ A typical usage:
     }
 
 Where `tools/my_md_toolXX` and `tools/galery` are some markdown processing
-scripts (`galery` script is provided with gingergen, you can find it in
+scripts (`galery` script is provided with site-gen, you can find it in
 `tools` directory). [Sundown](https://github.com/tanoku/sundown) is a markdown
 processing tool. And `tools/my_html_toolYY` is some html processing tool.
 

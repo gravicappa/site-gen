@@ -1,6 +1,6 @@
 #!/bin/sh
 # NAME
-#   gingergen table of contents generation script
+#   site-gen table of contents generation script
 #
 # SYNTAX
 # .Table-of-contents

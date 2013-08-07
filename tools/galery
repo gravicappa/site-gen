@@ -1,6 +1,6 @@
 #!/bin/sh
 # NAME
-#   gingergen galery generation script
+#   site-gen galery generation script
 #
 # SYNTAX
 # .Galery width: <width> dir: <dir> ext: <ext> show_desc: <show_desc>
