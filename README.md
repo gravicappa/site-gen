@@ -1,4 +1,4 @@
-# Gingergen
+# Site-gen
 
 It is a relatively simple script for generating static sites from a tree of
 markdown files. It has features:
