@@ -7,7 +7,7 @@ nav_template="nav_template"
 path_template="path_template"
 
 process_md() {
-  sundown
+  lowdown
 }
 
 cleanname() {
